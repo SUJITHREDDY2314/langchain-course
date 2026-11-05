@@ -16,7 +16,7 @@ def search(query: str) -> str:
         str: The search results
     """
     print(f"Searching for: {query}")
-    return "You are awesome"
+    return "The weather in irving is cold."
 
 
 def main():
@@ -30,7 +30,7 @@ def main():
     result = agent.invoke(
         {
             "messages": [
-                HumanMessage(content="Search for the best AI tools in 2024")
+                HumanMessage(content="What is the weather in irving?")
             ]  
         }
     )
