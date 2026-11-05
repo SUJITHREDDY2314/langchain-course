@@ -1,3 +1,5 @@
+from urllib import response
+
 from dotenv import load_dotenv
 from langchain.agents import create_agent
 from langchain.tools import tool
@@ -35,6 +37,8 @@ def main():
         }
     )
     print(result)
+    response = result["messages"][-1].content
+    print(response)
 
 
 
