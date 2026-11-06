@@ -6,7 +6,11 @@ from langchain.tools import tool
 from langchain_core.messages import HumanMessage
 from langchain_ollama import ChatOllama
 
+from tavily import TavilyClient
+
 load_dotenv()
+
+tavily_client = TavilyClient()
 
 @tool
 def search(query: str) -> str:
@@ -18,7 +22,7 @@ def search(query: str) -> str:
         str: The search results
     """
     print(f"Searching for: {query}")
-    return "The weather in irving is cold."
+    return tavily_client.search(query=query)
 
 
 def main():
@@ -32,7 +36,7 @@ def main():
     result = agent.invoke(
         {
             "messages": [
-                HumanMessage(content="What is the weather in irving?")
+                HumanMessage(content="What is the weather in irving, texas?")
             ]  
         }
     )
