@@ -23,7 +23,25 @@ def search(query: str) -> str:
         str: The search results
     """
     print(f"Searching for: {query}")
-    return tavily_client.search(query=query)
+
+    response = tavily_client.search(
+        query=query,
+        max_results=3,
+        search_depth="basic"
+    )
+
+    results = []
+
+    for item in response["results"]:
+        results.append(
+            f"""
+            Title: {item.get('title')}
+            URL: {item.get('url')}
+            Details: {item.get('content')}
+            """
+        )
+
+    return "\n".join(results)
 
 
 def main():
@@ -43,37 +61,22 @@ def main():
         {
             "messages": [
                 SystemMessage(content="""
-                    You are a professional and friendly weather assistant.
+                    You are a job search assistant.
 
-                    Always format your responses using clean Markdown.
+                    Your available tool is search.
 
-                    Weather response format:
-
-                    # 🌤️ Weather in [City, State]
-
-                    ## 🌡️ Current Temperature
-                    **65°F** – Clear skies
-
-                    ## 🌬️ Weather Details
-                    - **Humidity:** 69%
-                    - **Wind:** WNW at 9 mph
-                    - **Conditions:** Clear skies
-
-                    ## 💡 Quick Summary
-                    Provide a short, natural description of the current weather
-                    and a useful suggestion if appropriate.
-
-                    Formatting rules:
-                    1. Use Markdown headings.
-                    2. Bold important values.
-                    3. Use bullet points for weather details.
-                    4. Use relevant emojis sparingly.
-                    5. Add blank lines between sections.
-                    6. Keep the response concise and readable.
-                    7. Never invent missing weather information.
-                    """
-                ),
-                HumanMessage(content="What is the weather in irving, texas?")
+                    Rules:
+                    - Use only the search tool.
+                    - Never call open or any other unavailable tool.
+                    - Search LinkedIn for relevant job postings.
+                    - Find 3 relevant Angular developer jobs requiring RxJS
+                      in Richardson, Texas.
+                    - Include job title, company, location, requirements
+                      and job URL when available.
+                    - Never invent missing information.
+                    - Keep the response concise and use Markdown.
+                """),
+                HumanMessage(content="search for 3 job postings for an angular developer using rxjs in richardson texas on linkedin and their details?")
             ]  
         }
     )
