@@ -1,5 +1,4 @@
 from dotenv import load_dotenv
-from langchain_ollama import ChatOllama
 from langchain.tools import tool
 from langchain_core.messages import HumanMessage,SystemMessage,ToolMessage
 
@@ -9,7 +8,7 @@ from langsmith import traceable
 load_dotenv()
 
 MAX_ITERATIONS = 10
-MODEL = "qwen3:1.7b"
+MODEL = "qwen/qwen3.8-27b"
 price_catalogue = {
     "laptop": 999.99,
     "smartphone": 699.99,
@@ -49,13 +48,13 @@ def apply_discount(price: float, discount_tier: str) -> float:
 
 # Agent loop
 
-@traceable("LangChain Agent Loop")
+@traceable(name="LangChain Agent Loop", run_type="chain")
 def run_agent(question: str):
     tools = [get_product_price, apply_discount]
     tools_dict = {tool.name: tool for tool in tools}
 
     llm = init_chat_model(
-        f"ollama:{MODEL}",
+        f"groq:{MODEL}",
         temperature=0,
     )
     llm_with_tools = llm.bind_tools(tools)
@@ -80,6 +79,44 @@ def run_agent(question: str):
         ),
         HumanMessage(content=question),
     ]
+
+    for iteration in range(MAX_ITERATIONS):
+        print(f"\n--- Iteration {iteration + 1} ---")
+
+        ai_message = llm_with_tools.invoke(messages)
+        tool_calls = ai_message.tool_calls
+
+        # if no tool calls, the agent has finished and we can return the answer
+        if not tool_calls:
+            print("Agent has finished.Final answer:\n",ai_message.content)
+            return ai_message.content
+
+        # process only the first tool call for simplicity
+        tool_call = tool_calls[0]
+        tool_name = tool_call.get("name")
+        tool_args = tool_call.get("args", {})
+        tool_call_id = tool_call.get("id")
+
+        print(f"Tool call detected: {tool_name} with args: {tool_args}")
+
+        function_to_call = tools_dict.get(tool_name)
+        if function_to_call is None:
+            raise ValueError(f"Tool {tool_name} not found.")
+
+        observation = function_to_call.invoke(tool_args)
+
+        print(f"Observation from tool {tool_name}: {observation}")
+
+        # Append the tool's observation to the messages for the next iteration
+        messages.append(ai_message)
+        messages.append(
+            ToolMessage(
+                content=str(observation),
+                tool_call_id=tool_call_id
+            )
+        )
+    print("Max iterations reached. Returning the last answer.")
+    return None
 
 
 
