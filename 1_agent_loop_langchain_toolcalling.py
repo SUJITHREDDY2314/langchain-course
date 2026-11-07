@@ -4,6 +4,7 @@ from langchain.tools import tool
 from langchain_core.messages import HumanMessage,SystemMessage,ToolMessage
 
 from langchain.chat_models import init_chat_model
+from langsmith import traceable
 
 load_dotenv()
 
@@ -45,3 +46,16 @@ def apply_discount(price: float, discount_tier: str) -> float:
     print(f"Applying {discount_rate}% discount to price: {price}. Final price: {final_price}")
     return final_price
 
+
+# Agent loop
+
+@traceable("LangChain Agent Loop")
+def run_agent(question: str):
+    pass
+
+if __name__ == "__main__":
+    print("Hello LangChain agent(.bind_tools)!")
+
+    result = run_agent(
+        "What is the price of a laptop with a gold discount tier?"
+    )
